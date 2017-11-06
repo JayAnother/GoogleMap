@@ -1,5 +1,14 @@
 package org.jay.googlemap.map;
 
+import android.graphics.Color;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.SeekBar;
+import android.widget.Toast;
+
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -10,15 +19,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.jay.googlemap.R;
-
-import android.graphics.Color;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.View;
-import android.widget.CompoundButton;
-import android.widget.SeekBar;
-import android.widget.Toast;
 
 public class CameraDemoActivity extends AppCompatActivity implements
     GoogleMap.OnCameraMoveStartedListener,
@@ -360,7 +360,7 @@ public class CameraDemoActivity extends AppCompatActivity implements
             addCameraTargetToPath();
             mMap.addPolyline(currPolylineOptions);
         }
-        currPolylineOptions = null;
+//        currPolylineOptions = null;
         isCanceled = false;  // Set to *not* clear the map when dragging starts again.
         Log.i(TAG, "onCameraIdle");
     }

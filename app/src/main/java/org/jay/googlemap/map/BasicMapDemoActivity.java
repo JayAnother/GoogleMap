@@ -1,28 +1,60 @@
 package org.jay.googlemap.map;
 
+import android.animation.ObjectAnimator;
+import android.animation.TypeEvaluator;
+import android.animation.ValueAnimator;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.util.Property;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
+import android.widget.Button;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.jay.googlemap.R;
 
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+import static org.jay.googlemap.R.id.map;
 
 public class BasicMapDemoActivity extends AppCompatActivity implements OnMapReadyCallback {
-    private GoogleMap mMap;
+    private static int duration = 5000;
+    @BindView(R.id.btn)
+    Button mBtn;
+    @BindView(R.id.location)
+    Button mLocation;
+    private List<Marker> markers = new ArrayList<Marker>();
+    public GoogleMap mMap;
+    private LatLng mFrom;
+    private Marker mMarker01;
+    private Marker mMarker02;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_basic_map_demo);
-        SupportMapFragment supportMapFragment= (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        ButterKnife.bind(this);
+        SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(map);
         supportMapFragment.getMapAsync(this);
     }
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -35,17 +67,169 @@ public class BasicMapDemoActivity extends AppCompatActivity implements OnMapRead
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
+//        mMap.setPadding(0, 200, 0, 0);
         // Add a marker in qingdao and move the camera 青岛 北纬36°.0′ 东经120°.3′
-        LatLng sydney = new LatLng(36, 120);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in QingDao"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        LatLng sydney = new LatLng(36, -80);
+        mMarker02 = mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in QingDao"));
+
+//        LatLng sydney1 = new LatLng(36, 0);
+//        mMarker04 = mMap.addMarker(new MarkerOptions().position(sydney1).title("Marker in QingDao"));
+
+        mFrom = new LatLng(36, 150);
+
+        float track = 235;
+        MarkerOptions mFromMarkerOptions = new MarkerOptions()
+                .position(mFrom)
+                .anchor(0.5f, 0.5f)
+                .flat(true)
+                .rotation(track)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.car));
+        mMarker01 = mMap.addMarker(mFromMarkerOptions);
+
+        CameraPosition pos = CameraPosition
+                .builder(mMap.getCameraPosition())
+                .bearing(track)
+                .target(mMarker01.getPosition())
+                .build();
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(pos));
+
+//        mTo = new LatLng(36, 50);
+//        mMarker03 = mMap.addMarker(new MarkerOptions().position(mTo).title("Marker in QingDao"));
+
+        markers.add(mMarker01);
+        markers.add(mMarker02);
+
+
     }
 
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-        Log.d("jay", "onPointerCaptureChanged: [hasCapture]="+hasCapture);
+    @OnClick(R.id.location)
+    public void onLocationViewClicked() {
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(mMarker01.getPosition()));
+
     }
+
+    @OnClick(R.id.btn)
+    public void onViewClicked() {
+//        animateMarker(mMarker01, mMarker02.getPosition());
+        animateMarkerToGB(mMarker01, mMarker02.getPosition(), new LatLngInterpolator.LinearFixed());
+//        animateMarkerToICS(mMarker01, mMarker02.getPosition(), new LatLngInterpolator.LinearFixed());
+    }
+
+
+    void animateMarkerToGB(final Marker marker, final LatLng endP, final LatLngInterpolator latLngInterpolator) {
+        final Handler handler = new Handler();
+        final LatLng startP = marker.getPosition();
+        final long start = SystemClock.uptimeMillis();
+        final Interpolator interpolator = new LinearInterpolator();
+        final float durationInMs = duration;
+        handler.post(new Runnable() {
+            long elapsed;
+            float t;
+            float v;
+
+            @Override
+            public void run() {
+                // Calculate progress using interpolator
+                elapsed = SystemClock.uptimeMillis() - start;
+                t = elapsed / durationInMs;
+                v = interpolator.getInterpolation(t);
+                marker.setPosition(latLngInterpolator.interpolate(v, startP, endP));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+                // Repeat till progress is complete.
+                if (t < 1) {
+                    // Post again 16ms later.
+                    handler.postDelayed(this, 1);
+                }else{
+                    Log.d("jay", "run: []= wanle");
+                }
+            }
+        });
+    }
+
+
+    void animateMarkerToICS(Marker marker, LatLng finalPosition, final LatLngInterpolator latLngInterpolator) {
+        final LatLng startP = marker.getPosition();
+        final LatLng endP = finalPosition;
+        TypeEvaluator<LatLng> typeEvaluator = new TypeEvaluator<LatLng>() {
+            @Override
+            public LatLng evaluate(float fraction, LatLng startValue, LatLng endValue) {
+                return latLngInterpolator.interpolate(fraction, startValue, endValue);
+            }
+        };
+        Property<Marker, LatLng> property = Property.of(Marker.class, LatLng.class, "position");
+        ObjectAnimator animator = ObjectAnimator.ofObject(marker, property, typeEvaluator, finalPosition);
+        animator.setDuration(duration);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float v = animation.getAnimatedFraction();
+                final LatLng newPosition = latLngInterpolator.interpolate(v, startP, endP);
+                mMap.moveCamera(
+                        CameraUpdateFactory.newLatLng(newPosition));
+            }
+        });
+        animator.start();
+    }
+
+
+    //
+    public void animateMarker(final Marker marker, final LatLng destination) {
+        if (marker != null) {
+            final LatLng startPosition = marker.getPosition();
+            final LatLng endPosition = destination;
+            final int[] index = {0};
+            final LatLngInterpolator latLngInterpolator = new LatLngInterpolator.Linear();
+            ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
+            valueAnimator.setDuration(duration); // duration 1 second
+            valueAnimator.setInterpolator(new LinearInterpolator());
+            valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    try {
+                        float v = animation.getAnimatedFraction();
+                        final LatLng newPosition = latLngInterpolator.interpolate(v, startPosition, endPosition);
+                        index[0]++;
+                        Log.d("jay", "onAnimationUpdate: [animation]=" + newPosition + index[0]);
+//                        if (index[0] % 5 == 0) {
+//                            marker.setPosition(newPosition);
+//                            mMap.moveCamera(
+//                                    CameraUpdateFactory.newLatLng(newPosition));
+//                        }
+
+                        marker.setPosition(newPosition);
+                        mMap.moveCamera(
+                                CameraUpdateFactory.newLatLng(newPosition));
+//
+
+                    } catch (Exception ex) {
+                        // I don't care atm..
+                    }
+                }
+            });
+
+            valueAnimator.start();
+        }
+    }
+//
+//
+//    private interface LatLngInterpolator {
+//        LatLng interpolate(float fraction, LatLng a, LatLng b);
+//
+//        class LinearFixed implements LatLngInterpolator {
+//            @Override
+//            public LatLng interpolate(float fraction, LatLng a, LatLng b) {
+//                double lat = (b.latitude - a.latitude) * fraction + a.latitude;
+//                double lngDelta = b.longitude - a.longitude;
+//                // Take the shortest path across the 180th meridian.
+//                if (Math.abs(lngDelta) > 180) {
+//                    lngDelta -= Math.signum(lngDelta) * 360;
+//                }
+//                double lng = lngDelta * fraction + a.longitude;
+//                return new LatLng(lat, lng);
+//            }
+//        }
+//    }
+
 
     /**
      * 经纬度用南纬是负，北纬是正，东经是正，西经是负；
