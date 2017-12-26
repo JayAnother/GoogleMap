@@ -16,6 +16,8 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
+    <string name="aerisapi_client_id">BKbUpNcSpYy8n3mr9CHMn</string>
+    <string name="aerisapi_client_secret">lRy8R3daQ41ttKGxuwYjJ70mOJ2KdyWoeGZMFPiR</string>
     <string name="demo_title">Google Maps API Demos</string>
     <string name="no_demos">No demos</string>
     <string name="play_services_not_installed">Google Play services is not installed on this
@@ -290,4 +292,10 @@
     </string>
     <string name="permission_required_toast">Location permission is required for this demo.</string>
 
+
+
+
+    <string name="save_picture">保存图片</string>
+    <string name="save_picture_failed">保存失败</string>
+    <string name="save_picture_success">图片成功保存至%s目录</string>
 </resources>

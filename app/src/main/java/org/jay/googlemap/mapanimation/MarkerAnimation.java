@@ -42,7 +42,7 @@ public class MarkerAnimation {
                 // Repeat till progress is complete.
                 if (t < 1) {
                     // Post again 16ms later.
-                    handler.postDelayed(this, 16);
+                    handler.postDelayed(this, 300);
                 }
             }
         });
