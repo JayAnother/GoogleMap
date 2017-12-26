@@ -216,7 +216,7 @@ public class BasicMapDemoActivity extends AppCompatActivity implements
                 .anchor(0.5f, 0.5f)
                 .flat(true)
                 .rotation(track)
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.car));
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_map_plane));
         mMarker01 = mMap.addMarker(mFromMarkerOptions);
 
         CameraPosition pos = CameraPosition
@@ -469,7 +469,6 @@ public class BasicMapDemoActivity extends AppCompatActivity implements
                         final LatLng newPosition = latLngInterpolator.interpolate(v, startPosition, endPosition);
                         LatLng latLng=new LatLng(formatDouble(newPosition.latitude),formatDouble(newPosition.longitude));
                         index[0]++;
-//                        if (index[0] % 0 == 0) {
                         float bearing = computeRotation(v, 0, 0);
                             marker.setPosition(latLng);
                         Log.d("jay", ": [getPosition]="+ marker.getPosition().toString());
@@ -480,7 +479,6 @@ public class BasicMapDemoActivity extends AppCompatActivity implements
                                         .newCameraPosition(cameraPosition1));
                                 Log.d("jay", "---------------: [getCameraPosition]="+ mMap.getCameraPosition().toString());
                             }
-//                        }
 
 //                        marker.setPosition(newPosition);
 //                        mMap.moveCamera(
